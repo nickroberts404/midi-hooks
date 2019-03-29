@@ -8,6 +8,7 @@
   "dependencies": {
     "react": "^16.8.1",
     "react-dom": "^16.8.1",
+    "styled-components": "^4.2.0",
     "tonal": "^3.0.0-alpha1"
   },
   "scripts": {
