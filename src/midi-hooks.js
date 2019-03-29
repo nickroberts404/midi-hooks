@@ -25,10 +25,13 @@ export const useMIDI = () => {
 export const useMIDIOutput = (output) => {
 	if (!output) return [null, null];
 	const noteOn = (note, velocity = 127) => {
-		output.send([0x90, note, velocity]);
+		output.send([0x9c, note, velocity]);
 	};
 	const noteOff = (note, velocity = 127) => {
-		output.send([0x80, note, velocity]);
+		output.send([0x8c, note, velocity]);
 	};
-	return [noteOn, noteOff];
+	const cc = (value, control = 0x14) => {
+		output.send([0xbc, 0x06, value]);
+	};
+	return [noteOn, noteOff, cc];
 };

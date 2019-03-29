@@ -1,6 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 
-export const useKnobBehavior = (initialValue = 0, min = 0, max = 100) => {
+export const useKnobBehavior = (
+	onChange,
+	initialValue = 0,
+	min = 0,
+	max = 100
+) => {
 	const [value, setValue] = useState(initialValue);
 	const [active, setActive] = useState(false);
 	const [movement, setMovement] = useState([0, 0]);
@@ -30,5 +35,6 @@ export const useKnobBehavior = (initialValue = 0, min = 0, max = 100) => {
 			setValue(newValue);
 		}
 	}, [movement]);
+	useEffect(() => onChange(value), [value]);
 	return [cb, value, active];
 };

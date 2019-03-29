@@ -30,24 +30,17 @@ const Value = styled.div`
 	font-size: 0.75rem;
 	color: #333;
 `;
-const convertRange = (oldMin, oldMax, newMin, newMax, oldValue) => {
-	return (
-		((oldValue - oldMin) * (newMax - newMin)) / (oldMax - oldMin) + newMin
-	);
-};
 
-const Knob = ({ initial, min, max }) => {
-	const [ref, value, active] = useKnobBehavior(initial, min, max);
-
-	const fullAngle = 270;
-	const startAngle = (360 - fullAngle) / 2;
-	const endAngle = startAngle + fullAngle;
-	const currentDeg = Math.floor(
-		convertRange(min, max, startAngle, endAngle, value)
-	);
-
-	const gradient = getGradient(startAngle, fullAngle, currentDeg);
-
+const Knob = ({
+	initial = 0,
+	min = 0,
+	max = 100,
+	fullAngle = 270,
+	onChange,
+}) => {
+	const [ref, value, active] = useKnobBehavior(onChange, initial, min, max);
+	const currentDeg = getAngle(value, fullAngle, min, max);
+	const gradient = getGradient(fullAngle, currentDeg);
 	return (
 		<Container>
 			<KnobBody ref={ref} gradient={gradient} rotate={currentDeg}>
@@ -58,16 +51,30 @@ const Knob = ({ initial, min, max }) => {
 	);
 };
 
+const getAngle = (value, fullAngle, min, max) => {
+	const startAngle = (360 - fullAngle) / 2;
+	const endAngle = startAngle + fullAngle;
+	return Math.floor(convertRange(min, max, startAngle, endAngle, value));
+};
+
 const getGradient = (
-	startAngle,
 	fullAngle,
 	currentDeg,
 	activeColor = 'orange',
 	inactiveColor = '#eee',
 	backgroundColor = '#fff'
-) =>
-	`conic-gradient(from ${startAngle - 180}deg, ${activeColor} ${currentDeg -
+) => {
+	const startAngle = (360 - fullAngle) / 2;
+	return `conic-gradient(from ${startAngle -
+		180}deg, ${activeColor} ${currentDeg -
 		startAngle}deg, ${inactiveColor} ${currentDeg -
 		startAngle}deg ${fullAngle}deg, ${backgroundColor} ${fullAngle}deg)`;
+};
+
+const convertRange = (oldMin, oldMax, newMin, newMax, oldValue) => {
+	return (
+		((oldValue - oldMin) * (newMax - newMin)) / (oldMax - oldMin) + newMin
+	);
+};
 
 export default Knob;
