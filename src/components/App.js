@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useMIDI } from '../midi-hooks';
 import MIDIKnob from './MIDIKnob';
+import MIDISwitch from './MIDISwitch';
 import MIDIOutputSelector from './MIDIOutputSelector';
 
 const App = () => {
@@ -15,6 +16,7 @@ const App = () => {
 				outputs={outputs}
 				onChange={handleOutputChange}
 			/>
+			<MIDISwitch output={outputs[outputIndex]} control={6} />
 			<MIDIKnob output={outputs[outputIndex]} control={80} />
 			<MIDIKnob output={outputs[outputIndex]} control={81} />
 		</div>
