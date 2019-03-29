@@ -1,26 +1,31 @@
 import React, { useState } from 'react';
-import { useMIDI } from '../midi-hooks';
-import MIDIKnob from './MIDIKnob';
-import MIDISwitch from './MIDISwitch';
-import MIDIOutputSelector from './MIDIOutputSelector';
+import { useMIDI, useMIDIInput } from '../midi-hooks';
+import MIDIConnectionSelector from './MIDIConnectionSelector';
 
 const App = () => {
 	const [inputs, outputs] = useMIDI();
-	const [outputIndex, setOutputIndex] = useState(0);
-	if (outputs.length < 1) return <div>No MIDI outputs</div>;
-	const handleOutputChange = (e) => setOutputIndex(e.target.value);
+	const [inputID, setInputID] = useState(0);
+	if (inputs.length < 1) return <div>No MIDI inputs</div>;
+	const handleInputChange = (e) => setInputID(e.target.value);
 	return (
 		<div>
-			<MIDIOutputSelector
-				value={outputIndex}
-				outputs={outputs}
-				onChange={handleOutputChange}
+			<MIDIConnectionSelector
+				value={inputID}
+				onChange={handleInputChange}
+				connections={inputs}
 			/>
-			<MIDISwitch output={outputs[outputIndex]} control={6} />
-			<MIDIKnob output={outputs[outputIndex]} control={80} />
-			<MIDIKnob output={outputs[outputIndex]} control={81} />
+			<MIDIInputLog input={inputs.find((i) => i.id === inputID)} />
 		</div>
 	);
+};
+
+const MIDIInputLog = ({ input }) => {
+	const [value, setValue] = useState(0);
+	const [steps, setSteps] = useState(0);
+	const onClock = () => setSteps(steps + 1);
+	const onStop = () => setSteps(0);
+	useMIDIInput(input, { onClock, onStop });
+	return <div>Steps: {Math.floor(steps / 24)}</div>;
 };
 
 export default App;
