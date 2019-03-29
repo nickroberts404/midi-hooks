@@ -1,14 +1,22 @@
 import React, { useState } from 'react';
-import MIDIKnob from './MIDIKnob';
 import { useMIDI } from '../midi-hooks';
+import MIDIKnob from './MIDIKnob';
+import MIDIOutputSelector from './MIDIOutputSelector';
 
 const App = () => {
 	const [inputs, outputs] = useMIDI();
+	const [outputIndex, setOutputIndex] = useState(0);
 	if (outputs.length < 1) return <div>No MIDI outputs</div>;
+	const handleOutputChange = (e) => setOutputIndex(e.target.value);
 	return (
 		<div>
-			<MIDIKnob output={outputs[0]} control={6} />
-			<MIDIKnob output={outputs[0]} control={7} />
+			<MIDIOutputSelector
+				value={outputIndex}
+				outputs={outputs}
+				onChange={handleOutputChange}
+			/>
+			<MIDIKnob output={outputs[outputIndex]} control={80} />
+			<MIDIKnob output={outputs[outputIndex]} control={81} />
 		</div>
 	);
 };
