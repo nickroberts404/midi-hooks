@@ -1,18 +1,14 @@
 import React, { useState } from 'react';
-import Knob from './Knob';
-import { useMIDI, useMIDIOutput } from '../midi-hooks';
+import MIDIKnob from './MIDIKnob';
+import { useMIDI } from '../midi-hooks';
 
 const App = () => {
 	const [inputs, outputs] = useMIDI();
-	const [noteOn, noteOff, cc] = useMIDIOutput(outputs[0]);
-	if (noteOn) noteOn(69);
-	if (noteOff) window.setTimeout(() => noteOff(69), 200);
-	const handleKnobChange = (v) => {
-		if (cc) cc(v);
-	};
+	if (outputs.length < 1) return <div>No MIDI outputs</div>;
 	return (
 		<div>
-			<Knob initial={0} min={0} max={127} onChange={handleKnobChange} />
+			<MIDIKnob output={outputs[0]} control={6} />
+			<MIDIKnob output={outputs[0]} control={7} />
 		</div>
 	);
 };

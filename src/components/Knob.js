@@ -2,10 +2,14 @@ import React from 'react';
 import styled from 'styled-components';
 import { useKnobBehavior } from '../knob-hooks';
 
+const noselect =
+	'-webkit-touch-callout: none;-webkit-user-select: none;-khtml-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none';
+
 const Container = styled.div`
 	display: flex;
 	flex-direction: column;
 	align-items: center;
+	${noselect}
 `;
 const KnobBody = styled.div`
 	height: 40px;
@@ -16,14 +20,12 @@ const KnobBody = styled.div`
 	align-items: center;
 	justify-content: center;
 `;
-
 const KnobInner = styled.div`
 	height: 30px;
 	width: 30px;
 	border-radius: 50%;
 	background: #fff;
 `;
-
 // transform: rotate(${(props) => props.rotate}deg);
 const Value = styled.div`
 	font-family: Avenir;
