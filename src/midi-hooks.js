@@ -101,6 +101,40 @@ export const useMIDIControl = (input, control) => {
 	return value;
 };
 
+export const useMIDINote = (input, { note, channel } = {}) => {
+	const [value, setValue] = useState({});
+	const handleNoteOnMessage = (value, velocity, chan) => {
+		if ((!note || value === note) && (!channel || channel === chan)) {
+			setValue({ note: value, on: true, velocity, channel });
+		}
+	};
+	const handleNoteOffMessage = (value, velocity, chan) => {
+		if ((!note || value === note) && (!channel || channel === chan)) {
+			setValue({ note: value, on: false, velocity, channel });
+		}
+	};
+	useEffect(() => {
+		input.noteOnListeners['noteOn'] = handleNoteOnMessage;
+		input.noteOffListeners['noteOff'] = handleNoteOffMessage;
+		return () => {
+			delete input.noteOnListeners['noteOn'];
+			delete input.noteOffListeners['noteOff'];
+		};
+	}, [input, note]);
+	return value;
+};
+
+export const useMIDINotes = (input, filter = {}) => {
+	const [notes, setNotes] = useState([]);
+	const value = useMIDINote(input, filter);
+	useEffect(() => {
+		if (value.on) setNotes([...notes, value]);
+		//Note on, add note to array
+		else setNotes(notes.filter((n) => n.note !== value.note)); // Note off, remove note from array (maybe check for channel?)
+	}, [value]);
+	return notes;
+};
+
 export const useMIDIOutput = (output) => {
 	if (!output) return {};
 	const noteOn = (note, velocity = 127, channel = 1) => {

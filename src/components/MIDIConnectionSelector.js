@@ -6,7 +6,9 @@ const MIDIConnectionSelector = ({ value, connections, onChange }) => (
 	<Container>
 		<select onChange={onChange} value={value}>
 			{connections.map((connection) => (
-				<option value={connection.id}>{connection.name}</option>
+				<option key={connection.id} value={connection.id}>
+					{connection.name}
+				</option>
 			))}
 		</select>
 	</Container>
