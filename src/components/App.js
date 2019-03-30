@@ -6,7 +6,9 @@ const App = () => {
 	const [inputs, outputs] = useMIDI();
 	const [inputID, setInputID] = useState();
 	if (inputs.length < 1) return <div>No MIDI inputs</div>;
-	if (inputID === undefined) setInputID(inputs[0].id);
+	const input = inputs.find((i) => i.id === inputID);
+	if (input === undefined) setInputID(inputs[0].id);
+
 	const handleInputChange = (e) => setInputID(e.target.value);
 	return (
 		<div>
@@ -15,14 +17,14 @@ const App = () => {
 				onChange={handleInputChange}
 				connections={inputs}
 			/>
-			<MIDIInputLog input={inputs.find((i) => i.id === inputID)} />
+			<MIDIInputLog input={input} />
 		</div>
 	);
 };
 
 const MIDIInputLog = ({ input }) => {
 	const value = useMIDIControl(input);
-	const step = useMIDIClock(input);
+	const [step, isPlaying] = useMIDIClock(input, 24);
 	return (
 		<div>
 			Steps: {step} Value: {value}

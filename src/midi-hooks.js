@@ -65,21 +65,29 @@ const enrichInputs = (inputs) =>
 		return input;
 	});
 
-export const useMIDIClock = (input) => {
+export const useMIDIClock = (input, division) => {
 	const [step, setStep] = useState(0);
-
+	const [isPlaying, setIsPlaying] = useState(false);
 	useEffect(() => {
 		const handleClockMessage = () => {
 			// Keep track of count through closure. Is there a better way?
-			let steps = step;
+			let steps = 0;
 			return (type) => {
-				if (type === 0x08) setStep(steps++);
+				if (type === 0x08) {
+					steps++;
+					if (steps % division === 0) setStep(Math.floor(steps / division));
+				} else if (type === 0x0a) setIsPlaying(true);
+				else if (type === 0x0c) {
+					steps = 0;
+					setIsPlaying(false);
+					setStep(0);
+				}
 			};
 		};
 		input.clockListeners['midiClock'] = handleClockMessage();
 		return () => delete input.clockListeners['midiClock'];
 	}, [input]);
-	return step;
+	return [step, isPlaying];
 };
 
 export const useMIDIControl = (input, control) => {
