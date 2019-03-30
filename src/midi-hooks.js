@@ -22,100 +22,61 @@ export const useMIDI = () => {
 	}, []);
 	return [connections.inputs, connections.outputs];
 };
-// See if you can remove midimessage function. because it uses this!
-// See if splitting listeners by type actually has a performance effect
+
+// If listeners were kept in a general .listeners field then 100 functions listening for a noteOn event would get
+// called for every clock tick. I imagine this would affect performance. There must be a better way than this as well!
+function handleMIDIMessage(message) {
+	const action = message.data[0] & 0xf0; // Mask channel/least significant bits;
+	const leastSig = message.data[0] & 0x0f; // Mask action bits;
+	switch (action) {
+		case 0xb0:
+			for (const key in this.controlListeners) {
+				this.controlListeners[key](message.data[2], message.data[1], leastSig + 1); // (value, control, channel)
+			}
+			break;
+		case 0x90:
+			for (const key in this.noteOnListeners) {
+				this.noteOnListeners[key](message.data[1], message.data[2], leastSig + 1); // (note, velocity, channel)
+			}
+			break;
+		case 0x80:
+			for (const key in this.noteOffListeners) {
+				this.noteOffListeners[key](message.data[1], message.data[2], leastSig + 1); // (note, velocity, channel)
+			}
+			break;
+		case 0xf0:
+			for (const key in this.clockListeners) {
+				this.clockListeners[key](leastSig); // (type)
+			}
+			break;
+		default:
+			break;
+	}
+}
+
+// Listeners can be added/deleted from individual inputs.
+// This allows an input to have multiple 'onmidimessage' functions instead of setting/resetting one
 const enrichInputs = (inputs) =>
 	inputs.map((input) => {
 		input.clockListeners = {};
 		input.noteOnListeners = {};
 		input.noteOffListeners = {};
 		input.controlListeners = {};
-		input.onmidimessage = function(message) {
-			const action = message.data[0] & 0xf0; // Mask channel/least significant bits;
-			const leastSig = message.data[0] & 0x0f; // Mask action bits;
-			switch (action) {
-				case 0xb0:
-					for (const key in this.controlListeners) {
-						this.controlListeners[key](message.data[2], message.data[1], leastSig + 1); // (value, control, channel)
-					}
-					break;
-				case 0x90:
-					for (const key in this.noteOnListeners) {
-						this.noteOnListeners[key](message.data[1], message.data[2], leastSig + 1); // (note, velocity, channel)
-					}
-					break;
-				case 0x80:
-					for (const key in this.noteOffListeners) {
-						this.noteOffListeners[key](message.data[1], message.data[2], leastSig + 1); // (note, velocity, channel)
-					}
-					break;
-				case 0xf0:
-					for (const key in this.clockListeners) {
-						this.clockListeners[key](leastSig); // (type)
-					}
-					break;
-				default:
-					break;
-			}
-		};
+		input.onmidimessage = handleMIDIMessage;
 		return input;
 	});
-
-// export const useMIDIInput = (
-// 	input,
-// 	{ onClock, onControl, onNoteOn, onNoteOff, onStart, onStop }
-// ) => {
-// 	if (!input) return {};
-
-// 	input.onmidimessage = (message) => {
-// 		const action = message.data[0] & 0xf0; // Mask channel/least significant bits;
-// 		const leastSig = message.data[0] & 0x0f; // Mask action bits;
-// 		switch (action) {
-// 			case 0xb0:
-// 				onControl &&
-// 					onControl(message.data[2], message.data[1], leastSig + 1); // onControl(value, control, channel)
-// 				break;
-// 			case 0x90:
-// 				onNoteOn &&
-// 					onNoteOn(message.data[1], message.data[2], leastSig + 1); // onControl(note, velocity, channel)
-// 				break;
-// 			case 0x80:
-// 				onNoteOff &&
-// 					onNoteOff(message.data[1], message.data[2], leastSig + 1); // onControl(note, velocity, channel)
-// 				break;
-// 			case 0xf0:
-// 				switch (leastSig) {
-// 					case 0x08:
-// 						onClock && onClock();
-// 						break;
-// 					case 0x0a:
-// 						onStart && onStart();
-// 						break;
-// 					case 0x0c:
-// 						onStop && onStop();
-// 						break;
-// 					default:
-// 						break;
-// 				}
-// 				break;
-// 			default:
-// 				break;
-// 		}
-// 	};
-// };
 
 export const useMIDIClock = (input) => {
 	const [step, setStep] = useState(0);
 
-	const handleClockMessage = () => {
-		// Keep track of count through closure. Is there a better way?
-		let steps = step;
-		return (type) => {
-			if (type === 0x08) setStep(steps++);
-		};
-	};
-
 	useEffect(() => {
+		const handleClockMessage = () => {
+			// Keep track of count through closure. Is there a better way?
+			let steps = step;
+			return (type) => {
+				if (type === 0x08) setStep(steps++);
+			};
+		};
 		input.clockListeners['midiClock'] = handleClockMessage();
 		return () => delete input.clockListeners['midiClock'];
 	}, [input]);
