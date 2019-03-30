@@ -7,14 +7,13 @@ export const useMIDI = () => {
 	});
 	useEffect(() => {
 		navigator.requestMIDIAccess().then((access) => {
-			const inputs = enrichInputs([...access.inputs.values()]);
 			changeConnections({
-				inputs,
+				inputs: enrichInputs([...access.inputs.values()]),
 				outputs: [...access.outputs.values()],
 			});
 			access.onstatechange = (e) => {
 				changeConnections({
-					inputs: [...access.inputs.values()],
+					inputs: enrichInputs([...access.inputs.values()]),
 					outputs: [...access.outputs.values()],
 				});
 			};
@@ -58,10 +57,10 @@ function handleMIDIMessage(message) {
 // This allows an input to have multiple 'onmidimessage' functions instead of setting/resetting one
 const enrichInputs = (inputs) =>
 	inputs.map((input) => {
-		input.clockListeners = {};
-		input.noteOnListeners = {};
-		input.noteOffListeners = {};
-		input.controlListeners = {};
+		input.clockListeners = input.clockListeners || {};
+		input.noteOnListeners = input.noteOnListeners || {};
+		input.noteOffListeners = input.noteOffListeners || {};
+		input.controlListeners = input.controlListeners || {};
 		input.onmidimessage = handleMIDIMessage;
 		return input;
 	});
