@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { useMIDI, useMIDIInput } from '../midi-hooks';
+import { useMIDI, useMIDIClock, useMIDIControl } from '../midi-hooks';
 import MIDIConnectionSelector from './MIDIConnectionSelector';
 
 const App = () => {
 	const [inputs, outputs] = useMIDI();
-	const [inputID, setInputID] = useState(0);
+	const [inputID, setInputID] = useState();
 	if (inputs.length < 1) return <div>No MIDI inputs</div>;
+	if (inputID === undefined) setInputID(inputs[0].id);
 	const handleInputChange = (e) => setInputID(e.target.value);
 	return (
 		<div>
@@ -20,12 +21,13 @@ const App = () => {
 };
 
 const MIDIInputLog = ({ input }) => {
-	const [value, setValue] = useState(0);
-	const [steps, setSteps] = useState(0);
-	const onClock = () => setSteps(steps + 1);
-	const onStop = () => setSteps(0);
-	useMIDIInput(input, { onClock, onStop });
-	return <div>Steps: {Math.floor(steps / 24)}</div>;
+	const value = useMIDIControl(input);
+	const step = useMIDIClock(input);
+	return (
+		<div>
+			Steps: {step} Value: {value}
+		</div>
+	);
 };
 
 export default App;

@@ -1,12 +1,4 @@
-A HOC that controls midi connectivity for children components and provides props for outputting midi.
+API
+	const [inputs, outputs] = useMIDI();
 
-<MidiOutput>
-	<MidiOutputControl>
-<MidiInput>
-<Midi>
-
-<MidiOutput>
-	{(midi) => {
-		return <Sequencer midi={midi} />
-	}}
-</MidiOutput>
+	const [step] = useMIDIClock(input)
