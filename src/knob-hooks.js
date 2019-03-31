@@ -1,12 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 
-export const useKnobBehavior = (
-	onChange,
-	initialValue = 0,
-	min = 0,
-	max = 100
-) => {
-	const [value, setValue] = useState(initialValue);
+export const useKnobBehavior = (onChange, knobValue, min = 0, max = 100) => {
+	// console.log(knobValue);
+	const [value, setValue] = useState(knobValue || 0);
 	const [active, setActive] = useState(false);
 	const [movement, setMovement] = useState([0, 0]);
 	const handleMouseDown = (e) => {
@@ -15,13 +11,14 @@ export const useKnobBehavior = (
 		window.addEventListener('mouseup', handleMouseUp);
 	};
 	const handleDoubleClick = (e) => {
-		setValue(initialValue);
+		setValue(0);
 	};
 	const handleMouseMove = (e) => {
 		setMovement([e.movementX, e.movementY]);
 	};
 	const handleMouseUp = (e) => {
 		setActive(false);
+		setMovement([0, 0]);
 		window.removeEventListener('mousemove', handleMouseMove);
 		window.removeEventListener('mouseup', handleMouseUp);
 	};
@@ -31,10 +28,16 @@ export const useKnobBehavior = (
 	}, []);
 	useEffect(() => {
 		if (movement[0] !== 0) {
-			const newValue = Math.min(Math.max(value + movement[0], min), max);
-			setValue(newValue);
+			const useThis = knobValue === undefined ? value : knobValue;
+			const newValue = Math.min(Math.max(useThis + movement[0], min), max);
+			if (knobValue !== undefined) {
+				setValue(newValue);
+				onChange(newValue);
+			} else setValue(newValue);
 		}
 	}, [movement]);
-	useEffect(() => onChange(value), [value]);
-	return [cb, value, active];
+	useEffect(() => {
+		if (knobValue === undefined) onChange(value);
+	}, [value]);
+	return [cb, knobValue !== undefined ? knobValue : value, active];
 };

@@ -8,12 +8,14 @@ import {
 	useMIDINotes,
 	useMIDIOutput,
 } from '../midi-hooks';
+import MIDIKnob from './MIDIKnob';
 import MIDIConnectionSelector from './MIDIConnectionSelector';
 
 const App = () => {
 	const [inputs, outputs] = useMIDI();
 	const [inputID, setInputID] = useState();
 	const [outputID, setOutputID] = useState();
+	const [knobValue, setKnobValue] = useState(0);
 	if (inputs.length < 1) return <div>No MIDI inputs</div>;
 	const input = inputs.find((i) => i.id === inputID);
 	if (input === undefined) setInputID(inputs[0].id);
@@ -33,21 +35,7 @@ const App = () => {
 				onChange={handleOutputChange}
 				connections={outputs}
 			/>
-			<MIDILog input={input} output={output} />
-		</div>
-	);
-};
-
-const MIDILog = ({ input, output }) => {
-	const controls = [10, 11, 12, 13, 14, 15];
-	const values = useMIDIControls(input, controls);
-	return (
-		<div>
-			{controls.map((c, i) => (
-				<div>
-					{c}: {values[i]}
-				</div>
-			))}
+			<MIDIKnob input={input} output={output} control={80} />
 		</div>
 	);
 };
