@@ -3,6 +3,7 @@ import {
 	useMIDI,
 	useMIDIClock,
 	useMIDIControl,
+	useMIDIControls,
 	useMIDINote,
 	useMIDINotes,
 	useMIDIOutput,
@@ -38,11 +39,15 @@ const App = () => {
 };
 
 const MIDILog = ({ input, output }) => {
-	const control15 = useMIDIControl(input, { control: 15 });
-	const control14 = useMIDIControl(input, { control: 14 });
+	const controls = [10, 11, 12, 13, 14, 15];
+	const values = useMIDIControls(input, controls);
 	return (
 		<div>
-			Control 15: {control15} Control14: {control14}
+			{controls.map((c, i) => (
+				<div>
+					{c}: {values[i]}
+				</div>
+			))}
 		</div>
 	);
 };

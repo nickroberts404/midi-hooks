@@ -96,10 +96,11 @@ export const useMIDIClock = (input, division = 1) => {
 };
 
 export const useMIDIControl = (input, { control, channel } = {}) => {
-	const [value, setValue] = useState(0);
+	const [value, setValue] = useState({ value: 0, control, channel });
 	const handleControlMessage = (value, cntrl, chan) => {
-		console.log('[cntrl] ', cntrl);
-		if ((!control || control === cntrl) && (!channel || channel === chan)) setValue(value);
+		if ((!control || control === cntrl) && (!channel || channel === chan)) {
+			setValue({ value, control: cntrl, channel: chan });
+		}
 	};
 
 	useEffect(() => {
@@ -108,6 +109,17 @@ export const useMIDIControl = (input, { control, channel } = {}) => {
 		return () => delete input.controlListeners[id];
 	}, [input, control]);
 	return value;
+};
+
+export const useMIDIControls = (input, controls, filter = {}) => {
+	const [values, setValues] = useState(controls.map((c) => 0));
+	const value = useMIDIControl(input, filter);
+	useEffect(() => {
+		const targetIndex = controls.indexOf(value.control);
+		if (targetIndex > -1)
+			setValues(values.map((v, i) => (i === targetIndex ? value.value : v)));
+	}, [value]);
+	return values;
 };
 
 export const useMIDINote = (input, { note, channel } = {}) => {
