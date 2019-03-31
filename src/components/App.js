@@ -38,13 +38,11 @@ const App = () => {
 };
 
 const MIDILog = ({ input, output }) => {
-	const notes = useMIDINotes(input);
+	const control15 = useMIDIControl(input, { control: 15 });
+	const control14 = useMIDIControl(input, { control: 14 });
 	return (
 		<div>
-			notes:{' '}
-			{notes.map((n) => (
-				<span>{n.note} </span>
-			))}
+			Control 15: {control15} Control14: {control14}
 		</div>
 	);
 };

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import uniqid from 'uniqid';
 
 export const useMIDI = () => {
 	const [connections, changeConnections] = useState({
@@ -56,6 +57,8 @@ function handleMIDIMessage(message) {
 // Listeners can be added/deleted from individual inputs.
 // This allows an input to have multiple 'onmidimessage' functions instead of setting/resetting one
 const enrichInputs = (inputs) =>
+	// Remeber that this is only adding properties to the input object, not really returning a new object.
+	// This is a side effect that may present bugs/complications down the line.
 	inputs.map((input) => {
 		input.clockListeners = input.clockListeners || {};
 		input.noteOnListeners = input.noteOnListeners || {};
@@ -65,17 +68,19 @@ const enrichInputs = (inputs) =>
 		return input;
 	});
 
-export const useMIDIClock = (input, division) => {
+export const useMIDIClock = (input, division = 1) => {
 	const [step, setStep] = useState(0);
 	const [isPlaying, setIsPlaying] = useState(false);
 	useEffect(() => {
+		const id = uniqid();
 		const handleClockMessage = () => {
 			// Keep track of count through closure. Is there a better way?
 			let steps = 0;
 			return (type) => {
 				if (type === 0x08) {
 					steps++;
-					if (steps % division === 0) setStep(Math.floor(steps / division));
+					if (division === 1) setStep(steps);
+					else if (steps % division === 0) setStep(Math.floor(steps / division));
 				} else if (type === 0x0a) setIsPlaying(true);
 				else if (type === 0x0c) {
 					steps = 0;
@@ -84,19 +89,23 @@ export const useMIDIClock = (input, division) => {
 				}
 			};
 		};
-		input.clockListeners['midiClock'] = handleClockMessage();
-		return () => delete input.clockListeners['midiClock'];
+		input.clockListeners[id] = handleClockMessage();
+		return () => delete input.clockListeners[id];
 	}, [input]);
 	return [step, isPlaying];
 };
 
-export const useMIDIControl = (input, control) => {
+export const useMIDIControl = (input, { control, channel } = {}) => {
 	const [value, setValue] = useState(0);
-	const handleControlMessage = (value, control, channel) => setValue(value);
+	const handleControlMessage = (value, cntrl, chan) => {
+		console.log('[cntrl] ', cntrl);
+		if ((!control || control === cntrl) && (!channel || channel === chan)) setValue(value);
+	};
 
 	useEffect(() => {
-		input.controlListeners['control'] = handleControlMessage;
-		return () => delete input.controlListeners['control'];
+		const id = uniqid();
+		input.controlListeners[id] = handleControlMessage;
+		return () => delete input.controlListeners[id];
 	}, [input, control]);
 	return value;
 };
@@ -114,11 +123,12 @@ export const useMIDINote = (input, { note, channel } = {}) => {
 		}
 	};
 	useEffect(() => {
-		input.noteOnListeners['noteOn'] = handleNoteOnMessage;
-		input.noteOffListeners['noteOff'] = handleNoteOffMessage;
+		const id = uniqid();
+		input.noteOnListeners[`${id}-on`] = handleNoteOnMessage;
+		input.noteOffListeners[`${id}-off`] = handleNoteOffMessage;
 		return () => {
-			delete input.noteOnListeners['noteOn'];
-			delete input.noteOffListeners['noteOff'];
+			delete input.noteOnListeners[`${id}-on`];
+			delete input.noteOffListeners[`${id}-off`];
 		};
 	}, [input, note]);
 	return value;
