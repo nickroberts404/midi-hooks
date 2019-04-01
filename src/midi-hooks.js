@@ -28,6 +28,9 @@ export const useMIDI = () => {
 function handleMIDIMessage(message) {
 	const action = message.data[0] & 0xf0; // Mask channel/least significant bits;
 	const leastSig = message.data[0] & 0x0f; // Mask action bits;
+	for (const key in this.messageListeners) {
+		this.messageListeners[key](message); // (value, control, channel)
+	}
 	switch (action) {
 		case 0xb0:
 			for (const key in this.controlListeners) {
@@ -64,6 +67,7 @@ const enrichInputs = (inputs) =>
 		input.noteOnListeners = input.noteOnListeners || {};
 		input.noteOffListeners = input.noteOffListeners || {};
 		input.controlListeners = input.controlListeners || {};
+		input.messageListeners = input.messageListeners || {};
 		input.onmidimessage = handleMIDIMessage;
 		return input;
 	});
@@ -93,6 +97,19 @@ export const useMIDIClock = (input, division = 1) => {
 		return () => delete input.clockListeners[id];
 	}, [input]);
 	return [step, isPlaying];
+};
+
+export const useMIDIMessage = (input) => {
+	const [message, setMessage] = useState({});
+	const handleMessage = (message) => {
+		setMessage(message);
+	};
+	useEffect(() => {
+		const id = uniqid();
+		input.messageListeners[id] = handleMessage;
+		return () => delete input.messageListeners[id];
+	}, [input]);
+	return message;
 };
 
 export const useMIDIControl = (input, { control, channel } = {}) => {
