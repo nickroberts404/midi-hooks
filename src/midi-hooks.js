@@ -121,6 +121,7 @@ export const useMIDIControl = (input, { control, channel } = {}) => {
 	};
 
 	useEffect(() => {
+		if (!input) return () => {}; // No input provided, return noop
 		const id = uniqid();
 		input.controlListeners[id] = handleControlMessage;
 		return () => delete input.controlListeners[id];
@@ -132,6 +133,7 @@ export const useMIDIControls = (input, controls, filter = {}) => {
 	const [values, setValues] = useState(controls.map((c) => 0));
 	const value = useMIDIControl(input, filter);
 	useEffect(() => {
+		if (!input) return () => {}; // No input provided, return noop
 		const targetIndex = controls.indexOf(value.control);
 		if (targetIndex > -1)
 			setValues(values.map((v, i) => (i === targetIndex ? value.value : v)));
@@ -152,6 +154,7 @@ export const useMIDINote = (input, { note, channel } = {}) => {
 		}
 	};
 	useEffect(() => {
+		if (!input) return () => {}; // No input provided, return noop
 		const id = uniqid();
 		input.noteOnListeners[`${id}-on`] = handleNoteOnMessage;
 		input.noteOffListeners[`${id}-off`] = handleNoteOffMessage;
@@ -167,6 +170,7 @@ export const useMIDINotes = (input, filter = {}) => {
 	const [notes, setNotes] = useState([]);
 	const value = useMIDINote(input, filter);
 	useEffect(() => {
+		if (!input) return () => {}; // No input provided, return noop
 		if (value.on) setNotes([...notes, value]);
 		//Note on, add note to array
 		else setNotes(notes.filter((n) => n.note !== value.note)); // Note off, remove note from array (maybe check for channel?)
